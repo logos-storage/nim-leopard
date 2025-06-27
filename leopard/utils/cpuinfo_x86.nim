@@ -14,11 +14,13 @@ push: {.upraises: [].}
 
 # From awr1: https://github.com/nim-lang/Nim/pull/11816/files
 
-proc cpuidX86(eaxi, ecxi: int32): tuple[eax, ebx, ecx, edx: int32] {.used.}=
+proc cpuidX86(eaxi, ecxi: int32): tuple[eax, ebx, ecx, edx: int32] {.used.} =
   when defined(vcc):
     # limited inline asm support in vcc, so intrinsics, here we go:
-    proc cpuidVcc(cpuInfo: ptr int32; functionID, subFunctionID: int32)
-      {.cdecl, importc: "__cpuidex", header: "intrin.h".}
+    proc cpuidVcc(
+      cpuInfo: ptr int32, functionID, subFunctionID: int32
+    ) {.cdecl, importc: "__cpuidex", header: "intrin.h".}
+
     cpuidVcc(addr result.eax, eaxi, ecxi)
   else:
     var (eaxr, ebxr, ecxr, edxr) = (0'i32, 0'i32, 0'i32, 0'i32)
@@ -28,24 +30,81 @@ proc cpuidX86(eaxi, ecxi: int32): tuple[eax, ebx, ecx, edx: int32] {.used.}=
       :"a"(`eaxi`), "c"(`ecxi`)"""
     (eaxr, ebxr, ecxr, edxr)
 
-proc cpuNameX86(): string {.used.}=
+proc cpuNameX86(): string {.used.} =
   var leaves {.global.} = cast[array[48, char]]([
     cpuidX86(eaxi = 0x80000002'i32, ecxi = 0),
     cpuidX86(eaxi = 0x80000003'i32, ecxi = 0),
-    cpuidX86(eaxi = 0x80000004'i32, ecxi = 0)])
+    cpuidX86(eaxi = 0x80000004'i32, ecxi = 0),
+  ])
   result = $cast[cstring](addr leaves[0])
 
-type
-  X86Feature {.pure.} = enum
-    HypervisorPresence, Hyperthreading, NoSMT, IntelVtx, Amdv, X87fpu, Mmx,
-    MmxExt, F3DNow, F3DNowEnhanced, Prefetch, Sse, Sse2, Sse3, Ssse3, Sse4a,
-    Sse41, Sse42, Avx, Avx2, Avx512f, Avx512dq, Avx512ifma, Avx512pf,
-    Avx512er, Avx512cd, Avx512bw, Avx512vl, Avx512vbmi, Avx512vbmi2,
-    Avx512vpopcntdq, Avx512vnni, Avx512vnniw4, Avx512fmaps4, Avx512bitalg,
-    Avx512bfloat16, Avx512vp2intersect, Rdrand, Rdseed, MovBigEndian, Popcnt,
-    Fma3, Fma4, Xop, Cas8B, Cas16B, Abm, Bmi1, Bmi2, TsxHle, TsxRtm, Adx, Sgx,
-    Gfni, Aes, Vaes, Vpclmulqdq, Pclmulqdq, NxBit, Float16c, Sha, Clflush,
-    ClflushOpt, Clwb, PrefetchWT1, Mpx
+type X86Feature {.pure.} = enum
+  HypervisorPresence
+  Hyperthreading
+  NoSMT
+  IntelVtx
+  Amdv
+  X87fpu
+  Mmx
+  MmxExt
+  F3DNow
+  F3DNowEnhanced
+  Prefetch
+  Sse
+  Sse2
+  Sse3
+  Ssse3
+  Sse4a
+  Sse41
+  Sse42
+  Avx
+  Avx2
+  Avx512f
+  Avx512dq
+  Avx512ifma
+  Avx512pf
+  Avx512er
+  Avx512cd
+  Avx512bw
+  Avx512vl
+  Avx512vbmi
+  Avx512vbmi2
+  Avx512vpopcntdq
+  Avx512vnni
+  Avx512vnniw4
+  Avx512fmaps4
+  Avx512bitalg
+  Avx512bfloat16
+  Avx512vp2intersect
+  Rdrand
+  Rdseed
+  MovBigEndian
+  Popcnt
+  Fma3
+  Fma4
+  Xop
+  Cas8B
+  Cas16B
+  Abm
+  Bmi1
+  Bmi2
+  TsxHle
+  TsxRtm
+  Adx
+  Sgx
+  Gfni
+  Aes
+  Vaes
+  Vpclmulqdq
+  Pclmulqdq
+  NxBit
+  Float16c
+  Sha
+  Clflush
+  ClflushOpt
+  Clwb
+  PrefetchWT1
+  Mpx
 
 let
   leaf1 = cpuidX86(eaxi = 1, ecxi = 0)
@@ -62,7 +121,8 @@ proc testX86Feature(feature: X86Feature): bool =
   # see: https://en.wikipedia.org/wiki/CPUID#Calling_CPUID
   # see: Intel® Architecture Instruction Set Extensions and Future Features
   #      Programming Reference
-  result = case feature
+  result =
+    case feature
     # leaf 1, edx
     of X87fpu:
       leaf1.edx.test(0)

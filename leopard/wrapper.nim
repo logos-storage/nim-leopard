@@ -24,7 +24,6 @@
 ## ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ## POSSIBILITY OF SUCH DAMAGE.
 
-
 ## Leopard-RS
 ## MDS Reed-Solomon Erasure Correction Codes for Large Data in C
 ##
@@ -56,9 +55,9 @@
 ## arithmetic using Intel SIMD instructions."  In: FAST-2013: 11th Usenix
 ## Conference on File and Storage Technologies, San Jose, 2013
 
-
 import pkg/upraises
-push: {.upraises: [].}
+push:
+  {.upraises: [].}
 
 ## -----------------------------------------------------------------------------
 ## Build configuration
@@ -67,8 +66,7 @@ import std/compilesettings
 import std/os
 import std/strutils
 
-type
-  LeoDataPtr* {.importc: "const void* const*", bycopy.} = pointer
+type LeoDataPtr* {.importc: "const void* const*", bycopy.} = pointer
 
 const
   LeopardCmakeFlags {.strdefine.} =
@@ -121,12 +119,15 @@ static:
     let
       buildDirUnix = buildDir.pathWin2Unix
       leopardDirUnix = LeopardDir.pathWin2Unix
-    if defined(LeopardRebuild): discard bash("rm -rf", buildDirUnix)
+    if defined(LeopardRebuild):
+      discard bash("rm -rf", buildDirUnix)
     if (bashEx("ls", LeopardLib.pathWin2Unix)).exitCode != 0:
       discard bash("mkdir -p", buildDirUnix)
       let cmd =
-        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, LeopardCmakeFlags,
-          "&& make libleopard"]
+        @[
+          "cd", buildDirUnix, "&& cmake", leopardDirUnix, LeopardCmakeFlags,
+          "&& make libleopard",
+        ]
       echo "\nBuilding Leopard-RS: " & cmd.join(" ")
       let (output, exitCode) = bashEx cmd
       echo output
@@ -134,7 +135,8 @@ static:
         discard bash("rm -rf", buildDirUnix)
         raise (ref Defect)(msg: "Failed to build Leopard-RS")
   else:
-    if defined(LeopardRebuild): discard gorge "rm -rf " & buildDir
+    if defined(LeopardRebuild):
+      discard gorge "rm -rf " & buildDir
     if gorgeEx("ls " & LeopardLib).exitCode != 0:
       discard gorge "mkdir -p " & buildDir
       let cmd =
@@ -159,21 +161,22 @@ proc leoInit*(): cint {.leo, importcpp: "leo_init".}
 ##  Results
 
 # TODO: For some reason it's only possibly to use the enum with `ord`
-type
-  LeopardResult* = enum
-    LeopardCallInitialize = -7, ##  Call leo_init() first
-    LeopardPlatform = -6,       ##  Platform is unsupported
-    LeopardInvalidInput = -5,   ##  A function parameter was invalid
-    LeopardInvalidCounts = -4,  ##  Invalid counts provided
-    LeopardInvalidSize = -3,    ##  Buffer size must be a multiple of 64 bytes
-    LeopardTooMuchData = -2,    ##  Buffer counts are too high
-    LeopardNeedMoreData = -1,   ##  Not enough recovery data received
-    LeopardSuccess = 0          ##  Operation succeeded
-
+type LeopardResult* = enum
+  LeopardCallInitialize = -7 ##  Call leo_init() first
+  LeopardPlatform = -6 ##  Platform is unsupported
+  LeopardInvalidInput = -5 ##  A function parameter was invalid
+  LeopardInvalidCounts = -4 ##  Invalid counts provided
+  LeopardInvalidSize = -3 ##  Buffer size must be a multiple of 64 bytes
+  LeopardTooMuchData = -2 ##  Buffer counts are too high
+  LeopardNeedMoreData = -1 ##  Not enough recovery data received
+  LeopardSuccess = 0 ##  Operation succeeded
 
 ##  Convert Leopard result to string
 
-proc leoResultString*(result: LeopardResult): cstring {.leo, importc: "leo_result_string".}
+proc leoResultString*(
+  result: LeopardResult
+): cstring {.leo, importc: "leo_result_string".}
+
 ## ------------------------------------------------------------------------------
 ##  Encoder API
 ##
@@ -187,8 +190,10 @@ proc leoResultString*(result: LeopardResult): cstring {.leo, importc: "leo_resul
 ##     Returns 0 on invalid input.
 ##
 
-proc leoEncodeWorkCount*(originalCount: cuint; recoveryCount: cuint): cuint
-  {.leo, importc: "leo_encode_work_count".}
+proc leoEncodeWorkCount*(
+  originalCount: cuint, recoveryCount: cuint
+): cuint {.leo, importc: "leo_encode_work_count".}
+
 ##
 ##     leo_encode()
 ##
@@ -224,12 +229,13 @@ proc leoEncodeWorkCount*(originalCount: cuint; recoveryCount: cuint): cuint
 ##
 
 proc leoEncode*(
-  bufferBytes: uint64;
-  originalCount: cuint;
-  recoveryCount: cuint;
-  workCount: cuint;
-  originalData: LeoDataPtr;
-  workData: ptr pointer): LeopardResult {.leo, importc: "leo_encode".}
+  bufferBytes: uint64,
+  originalCount: cuint,
+  recoveryCount: cuint,
+  workCount: cuint,
+  originalData: LeoDataPtr,
+  workData: ptr pointer,
+): LeopardResult {.leo, importc: "leo_encode".}
   ##  Number of bytes in each data buffer
   ##  Number of original_data[] buffer pointers
   ##  Number of recovery_data[] buffer pointers
@@ -251,8 +257,10 @@ proc leoEncode*(
 ##     Returns 0 on invalid input.
 ##
 
-proc leoDecodeWorkCount*(originalCount: cuint; recoveryCount: cuint): cuint
-  {.leo, importc: "leo_decode_work_count".}
+proc leoDecodeWorkCount*(
+  originalCount: cuint, recoveryCount: cuint
+): cuint {.leo, importc: "leo_decode_work_count".}
+
 ##
 ##     leoDecode()
 ##
@@ -276,13 +284,14 @@ proc leoDecodeWorkCount*(originalCount: cuint; recoveryCount: cuint): cuint
 ##
 
 proc leoDecode*(
-  bufferBytes: uint64;
-  originalCount: cuint;
-  recoveryCount: cuint;
-  workCount: cuint;
-  originalData: LeoDataPtr;
-  recoveryData: LeoDataPtr;
-  workData: ptr pointer): LeopardResult {.leo, importc: "leo_decode".}
+  bufferBytes: uint64,
+  originalCount: cuint,
+  recoveryCount: cuint,
+  workCount: cuint,
+  originalData: LeoDataPtr,
+  recoveryData: LeoDataPtr,
+  workData: ptr pointer,
+): LeopardResult {.leo, importc: "leo_decode".}
   ##  Number of bytes in each data buffer
   ##  Number of original_data[] buffer pointers
   ##  Number of recovery_data[] buffer pointers

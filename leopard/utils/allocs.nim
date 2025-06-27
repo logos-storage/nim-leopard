@@ -8,7 +8,8 @@
 ## those terms.
 
 import pkg/upraises
-push: {.upraises: [].}
+push:
+  {.upraises: [].}
 
 {.deadCodeElim: on.}
 
@@ -25,43 +26,44 @@ else:
   let LeoAlignBytes* = 16'u
 
 when defined(windows):
-  proc alignedAllocWindows(size, alignment: csize_t): pointer
-    {.importc: "_aligned_malloc", header: "<malloc.h>".}
+  proc alignedAllocWindows(
+    size, alignment: csize_t
+  ): pointer {.importc: "_aligned_malloc", header: "<malloc.h>".}
     # Beware of the arg order!
 
   proc alignedAlloc(alignment, size: csize_t): pointer =
     alignedAllocWindows(size, alignment)
 
-  proc alignedFree*[T](p: ptr T)
-    {.importc: "_aligned_free", header: "<malloc.h>".}
+  proc alignedFree*[T](p: ptr T) {.importc: "_aligned_free", header: "<malloc.h>".}
 elif defined(osx):
-  proc posix_memalign(mem: var pointer, alignment, size: csize_t)
-    {.importc, header:"<stdlib.h>".}
+  proc posix_memalign(
+    mem: var pointer, alignment, size: csize_t
+  ) {.importc, header: "<stdlib.h>".}
 
   proc alignedAlloc(alignment, size: csize_t): pointer {.inline.} =
     posix_memalign(result, alignment, size)
 
   proc alignedFree*[T](p: ptr T) {.inline.} =
     c_free(p)
+
 elif defined(unix):
-  proc alignedAlloc(alignment, size: csize_t): pointer
-    {.importc: "aligned_alloc", header: "<stdlib.h>".}
+  proc alignedAlloc(
+    alignment, size: csize_t
+  ): pointer {.importc: "aligned_alloc", header: "<stdlib.h>".}
 
   proc alignedFree*[T](p: ptr T) {.inline.} =
     c_free(p)
+
 else:
   {.warning: "Falling back to manual pointer alignment, this is highly inefficient!".}
-  proc alignedAlloc*(size, align: Positive): pointer {.inline.}  =
-    var
-      data = c_malloc(align + size)
+  proc alignedAlloc*(size, align: Positive): pointer {.inline.} =
+    var data = c_malloc(align + size)
 
     if not isNil(data):
-      var
-        doffset = cast[uint](data) mod align
+      var doffset = cast[uint](data) mod align
 
       data = data.offset((align + doffset).int)
-      var
-        offsetPtr = cast[pointer](cast[uint](data) - 1'u)
+      var offsetPtr = cast[pointer](cast[uint](data) - 1'u)
       moveMem(offsetPtr, addr doffset, sizeof(doffset))
 
       return data
@@ -71,7 +73,7 @@ else:
     if not isNil(data):
       let offset = cast[uint](data) - 1'u
       if offset >= align:
-          return
+        return
 
       data = cast[pointer](cast[uint](data) - (align - offset))
       c_free(data)
