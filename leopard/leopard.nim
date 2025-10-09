@@ -7,12 +7,11 @@
 ## This file may not be copied, modified, or distributed except according to
 ## those terms.
 
-import pkg/upraises
-push: {.upraises: [].}
+{.push raises: [].}
 
 {.deadCodeElim: on.}
 
-import pkg/stew/results
+import pkg/results
 
 import ./wrapper
 import ./utils

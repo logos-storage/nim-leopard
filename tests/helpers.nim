@@ -1,6 +1,6 @@
 import std/random
 
-import pkg/stew/results
+import pkg/results
 import ../leopard
 
 proc randomCRCPacket*(data: var openArray[byte]) =

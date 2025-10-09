@@ -55,9 +55,7 @@
 ## arithmetic using Intel SIMD instructions."  In: FAST-2013: 11th Usenix
 ## Conference on File and Storage Technologies, San Jose, 2013
 
-import pkg/upraises
-push:
-  {.upraises: [].}
+{.push raises: [].}
 
 ## -----------------------------------------------------------------------------
 ## Build configuration
