@@ -108,7 +108,7 @@ proc overrideCMakeMarch() =
   # not necessarily available on the user system.
   # To be able to build portable binaries, we have no choice but
   # to modify the CMakeLists.txt
-  when defined(nimleopard_portable_build):
+  when defined(nimleopard_portable_build) and defined(amd64):
     if defined(windows) or defined(unix):
       let
         cmakeFile = joinPath(LeopardDir, "CMakeLists.txt")
