@@ -100,7 +100,33 @@ const
 
   LeopardExtraLinkerFlags {.strdefine.} = ""
 
+proc overrideCMakeMarch() =
+  # vendor/leopard/CMakeLists.txt defined "-march=native" explicitly
+  # it provides no means to override this.
+  # Because of this, when we build binaries intended to be delivered
+  # they may contain instructions available on the build system that are
+  # not necessarily available on the user system.
+  # To be able to build portable binaries, we have no choice but
+  # to modify the CMakeLists.txt
+  when defined(nimleopard_portable_build):
+    if defined(windows) or defined(unix):
+      let
+        cmakeFile = joinPath(LeopardDir, "CMakeLists.txt")
+        searchTarget = " -march=native"
+        replaceTarget = " -march=x86-64-v3"
+      
+      echo "Applying portable-build override on CMakeLists.txt..."
+      
+      try:
+        let replaced = readFile(cmakeFile).replace(searchTarget, replaceTarget)
+        
+        writeFile(cmakeFile, replaced)
+      except IOError as err:
+        raiseAssert("Failed to modify CMakeLists.txt for portable build: " & err.msg)
+
+
 static:
+  overrideCMakeMarch()
   if defined(windows):
     func pathUnix2Win(path: string): string =
       gorge("cygpath -w " & path.strip).strip
