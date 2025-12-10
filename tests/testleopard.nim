@@ -2,7 +2,7 @@ import std/random
 import std/sets
 
 import pkg/unittest2
-import pkg/stew/results
+import pkg/results
 
 import ../leopard
 import ./helpers
