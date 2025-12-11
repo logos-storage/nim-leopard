@@ -17,12 +17,11 @@ jobs:
             label: macOS,
             runner: macos-latest
           }
-          # TODO https://github.com/nim-lang/choosenim/issues/27
-          # - {
-          #   icon: 🏁,
-          #   label: Windows,
-          #   runner: windows-latest
-          # }
+          - {
+            icon: 🏁,
+            label: Windows,
+            runner: windows-latest
+          }
         nim: [1.6.18]
     name: ${{ matrix.platform.icon }} ${{ matrix.platform.label }} - Nim v${{ matrix.nim }}
     runs-on: ${{ matrix.platform.runner }}
@@ -33,9 +32,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - uses: iffy/install-nim@v5
+    - uses: jiro4989/setup-nim-action@v2
       with:
-        version: ${{ matrix.nim }}
+        nim-version: ${{matrix.nim}}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install
       run: nimble install -y
     - name: Build and run tests
