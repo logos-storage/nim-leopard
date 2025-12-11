@@ -7,10 +7,7 @@
 ## This file may not be copied, modified, or distributed except according to
 ## those terms.
 
-import pkg/upraises
-push: {.upraises: [].}
-
-{.deadCodeElim: on.}
+{.push raises: [].}
 
 # From awr1: https://github.com/nim-lang/Nim/pull/11816/files
 
