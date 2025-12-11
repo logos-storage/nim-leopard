@@ -1,16 +1,6 @@
 {
   "version": 2,
   "packages": {
-    "results": {
-      "version": "0.5.1",
-      "vcsRevision": "df8113dda4c2d74d460a8fa98252b0b771bf1f27",
-      "url": "https://github.com/arnetheduck/nim-results",
-      "downloadMethod": "git",
-      "dependencies": [],
-      "checksums": {
-        "sha1": "a9c011f74bc9ed5c91103917b9f382b12e82a9e7"
-      }
-    },
     "unittest2": {
       "version": "0.2.5",
       "vcsRevision": "26f2ef3ae0ec72a2a75bfe557e02e88f6a31c189",
@@ -21,17 +11,14 @@
         "sha1": "02bb3751ba9ddc3c17bfd89f2e41cb6bfb8fc0c9"
       }
     },
-    "stew": {
-      "version": "0.4.2",
-      "vcsRevision": "b66168735d6f3841c5239c3169d3fe5fe98b1257",
-      "url": "https://github.com/status-im/nim-stew",
+    "results": {
+      "version": "0.5.1",
+      "vcsRevision": "df8113dda4c2d74d460a8fa98252b0b771bf1f27",
+      "url": "https://github.com/arnetheduck/nim-results",
       "downloadMethod": "git",
-      "dependencies": [
-        "results",
-        "unittest2"
-      ],
+      "dependencies": [],
       "checksums": {
-        "sha1": "928e82cb8d2f554e8f10feb2349ee9c32fee3a8c"
+        "sha1": "a9c011f74bc9ed5c91103917b9f382b12e82a9e7"
       }
     }
   },
