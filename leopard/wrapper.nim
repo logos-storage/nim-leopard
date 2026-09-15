@@ -63,48 +63,74 @@
 ## Build configuration
 
 import std/compilesettings
-import std/os
 import std/strutils
+from system/nimscript import buildOS
+
+const BuildDirSep = when buildOS == "windows": '\\' else: '/'
+
+func buildParentDir(path: string): string =
+  ## Parent path according to the build host, not Nim's cross-compilation target.
+  var last = path.high
+  while last >= 0 and path[last] in {'/', '\\'}:
+    dec(last)
+  while last >= 0 and path[last] notin {'/', '\\'}:
+    dec(last)
+  if last < 0:
+    return ""
+  return path[0 ..< last]
+
+func buildPath(head, tail: string): string =
+  ## Join paths used by compile-time build commands using the build host's separator.
+  if head.len == 0:
+    return tail
+  if tail.len == 0:
+    return head
+
+  result = head
+  if result[^1] notin {'/', '\\'}:
+    result.add(BuildDirSep)
+
+  var tailStart = 0
+  while tailStart < tail.len and tail[tailStart] in {'/', '\\'}:
+    inc(tailStart)
+  if tailStart < tail.len:
+    result.add(tail[tailStart .. ^1])
 
 type
   LeoDataPtr* {.importc: "const void* const*", bycopy.} = pointer
 
 const
+  LeopardOpenMP {.booldefine.} = not defined(macosx)
+
   LeopardCmakeFlags {.strdefine.} =
-    when defined(macosx):
-      "-DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=off"
-    elif defined(windows):
-      "-G\"MSYS Makefiles\" -DCMAKE_BUILD_TYPE=Release"
-    else:
-      "-DCMAKE_BUILD_TYPE=Release"
+    (
+      when buildOS == "windows":
+        "-G\"MSYS Makefiles\" -DCMAKE_BUILD_TYPE=Release"
+      else:
+        "-DCMAKE_BUILD_TYPE=Release"
+    ) & (if LeopardOpenMP: "" else: " -DENABLE_OPENMP=off")
 
   LeopardDir {.strdefine.} =
-    joinPath(currentSourcePath.parentDir.parentDir, "vendor", "leopard")
+    buildPath(buildParentDir(buildParentDir(currentSourcePath)), "vendor/leopard")
 
-  buildDir = joinPath(querySetting(nimcacheDir), "vendor_leopard")
+  buildDir = buildPath(querySetting(nimcacheDir), "vendor_leopard")
 
   LeopardHeader {.strdefine.} = "leopard.h"
 
-  LeopardLib {.strdefine.} = joinPath(buildDir, "liblibleopard.a")
+  LeopardLib {.strdefine.} = buildPath(buildDir, "liblibleopard.a")
 
   LeopardCompilerFlags {.strdefine.} =
-    when defined(macosx):
-      "-I" & LeopardDir
-    else:
-      "-I" & LeopardDir & " -fopenmp"
+    "-I" & LeopardDir & (if LeopardOpenMP: " -fopenmp" else: "")
 
   LeopardLinkerFlags {.strdefine.} =
-    when defined(macosx):
-      LeopardLib
-    else:
-      LeopardLib & " -fopenmp"
+    LeopardLib & (if LeopardOpenMP: " -fopenmp" else: "")
 
   LeopardExtraCompilerFlags {.strdefine.} = ""
 
   LeopardExtraLinkerFlags {.strdefine.} = ""
 
 static:
-  if defined(windows):
+  if buildOS == "windows":
     func pathUnix2Win(path: string): string =
       gorge("cygpath -w " & path.strip).strip
 

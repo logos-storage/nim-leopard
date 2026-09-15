@@ -47,22 +47,22 @@ The submodule is automatically built (in the `nimcache` dir) and statically link
 
 If the `nimcache` dir is set to a custom value, it must be an absolute path.
 
-For the build to work on Windows, `nimble` or `nim c` must be run from a Bash shell, e.g. Git Bash or an MSYS2 shell, and all needed tools (`cmake`, `make`, compiler, etc.) must be available in and suitable for that environment.
+For a native build on Windows, `nimble` or `nim c` must be run from a Bash shell, e.g. Git Bash or an MSYS2 shell, and all needed tools (`cmake`, `make`, compiler, etc.) must be available in and suitable for that environment.
+
+Cross-compilation uses the build host's shell and path conventions. For example, a Linux-to-Windows build does not require `cygpath` or the MSYS CMake generator; the selected C/C++ cross-compiler is still responsible for producing the target archive.
 
 ##### OpenMP
 
-Leopard-RS' `CMakeLists.txt` checks for [OpenMP](https://en.wikipedia.org/wiki/OpenMP) support. If it is available then it is enabled in the build of `libleopard.a`.
+Leopard-RS' `CMakeLists.txt` checks for [OpenMP](https://en.wikipedia.org/wiki/OpenMP) support. If it is available then it is enabled in the build of `libleopard.a` on Linux and Windows. It is disabled by default on macOS.
+
+Pass `-d:LeopardOpenMP=false` to disable OpenMP explicitly. This changes the Leopard-RS CMake configuration and removes `-fopenmp` from the flags passed to Nim's compiler and linker. Pass `-d:LeopardRebuild` as well if the current nimcache already contains a Leopard archive built with another setting.
 
 Build toolchains commonly installed on Linux and Windows come with support for OpenMP.
 
 The clang compiler that ships with Apple's Xcode does not support OpenMP, but the one installed with `brew install llvm` does support it, though it's also necessary to `brew install libomp`.
 
 So, on macOS, when running `nimble test` of nim-leopard or compiling a project that imports nim-leopard:
-* If libomp is not installed and Xcode clang is used, no extra flags need to be passed to the Nim compiler. OpenMP support will not be enabled in `libleopard.a`.
-* If libomp is installed and Xcode clang is used, this flag should be passed to `nim c`
-  ```text
-  -d:LeopardCmakeFlags="-DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=off"
-  ```
+* If Xcode clang is used, no extra flags need to be passed to the Nim compiler. OpenMP is disabled by default on macOS.
 * If the intent is to use brew-installed clang + libomp, the shell environment should be modified
   ```text
   $ export PATH="$(brew --prefix)/opt/llvm/bin:${PATH}"
@@ -70,7 +70,7 @@ So, on macOS, when running `nimble test` of nim-leopard or compiling a project t
   ```
   and these flags should be passed to `nim c`
   ```text
-  -d:LeopardCmakeFlags="-DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(brew --prefix)/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=$(brew --prefix)/opt/llvm/bin/clang++" -d:LeopardExtraCompilerFlags="-fopenmp" -d:LeopardExtraLinkerFlags="-fopenmp -L$(brew --prefix)/opt/libomp/lib"
+  -d:LeopardOpenMP -d:LeopardCmakeFlags="-DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$(brew --prefix)/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=$(brew --prefix)/opt/llvm/bin/clang++" -d:LeopardExtraLinkerFlags="-L$(brew --prefix)/opt/libomp/lib"
   ```
 
 ## Usage
