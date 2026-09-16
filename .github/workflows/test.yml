@@ -59,6 +59,8 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64 wine
     - name: Install
       run: nimble install -y
+    - name: Write nimble.paths
+      run: nimble setup
     - name: Cross-compile the tests
       run: >
         nim c --os:windows --cpu:amd64 -d:release
