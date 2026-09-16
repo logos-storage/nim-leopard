@@ -66,7 +66,7 @@ jobs:
         nim c --os:windows --cpu:amd64 -d:release
         --gcc.exe:x86_64-w64-mingw32-gcc
         --gcc.linkerexe:x86_64-w64-mingw32-g++
-        --passL:-static-libgcc --passL:-static-libstdc++
+        --passL:-static
         -d:LeopardCmakeFlags="-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DCMAKE_BUILD_TYPE=Release"
         tests/testleopard.nim
     - name: Run the tests under wine
