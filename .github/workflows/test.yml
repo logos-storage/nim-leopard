@@ -43,3 +43,29 @@ jobs:
       run: |
         eval nimble --verbose test -d:release --mm:refc
         eval nimble --verbose test -d:release --mm:orc
+
+  cross-windows:
+    name: 🏁 Windows cross-built from 🐧 Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: jiro4989/setup-nim-action@v2
+      with:
+        nim-version: stable
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install the MinGW toolchain and wine
+      run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64 wine
+    - name: Install
+      run: nimble install -y
+    - name: Cross-compile the tests
+      run: >
+        nim c --os:windows --cpu:amd64 -d:release
+        --gcc.exe:x86_64-w64-mingw32-gcc
+        --gcc.linkerexe:x86_64-w64-mingw32-g++
+        --passL:-static-libgcc --passL:-static-libstdc++
+        -d:LeopardCmakeFlags="-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DCMAKE_BUILD_TYPE=Release"
+        tests/testleopard.nim
+    - name: Run the tests under wine
+      run: WINEDEBUG=-all wine tests/testleopard.exe
