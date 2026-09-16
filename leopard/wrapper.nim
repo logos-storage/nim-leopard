@@ -65,6 +65,7 @@
 import std/compilesettings
 import std/os
 import std/strutils
+from system/nimscript import buildOS
 
 type
   LeoDataPtr* {.importc: "const void* const*", bycopy.} = pointer
@@ -73,19 +74,19 @@ const
   LeopardCmakeFlags {.strdefine.} =
     when defined(macosx):
       "-DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=off"
-    elif defined(windows):
+    elif buildOS == "windows":
       "-G\"MSYS Makefiles\" -DCMAKE_BUILD_TYPE=Release"
     else:
       "-DCMAKE_BUILD_TYPE=Release"
 
   LeopardDir {.strdefine.} =
-    joinPath(currentSourcePath.parentDir.parentDir, "vendor", "leopard")
+    currentSourcePath.parentDir.parentDir.replace('\\', '/') & "/vendor/leopard"
 
-  buildDir = joinPath(querySetting(nimcacheDir), "vendor_leopard")
+  buildDir = querySetting(nimcacheDir).replace('\\', '/') & "/vendor_leopard"
 
   LeopardHeader {.strdefine.} = "leopard.h"
 
-  LeopardLib {.strdefine.} = joinPath(buildDir, "liblibleopard.a")
+  LeopardLib {.strdefine.} = buildDir & "/liblibleopard.a"
 
   LeopardCompilerFlags {.strdefine.} =
     when defined(macosx):
@@ -104,7 +105,7 @@ const
   LeopardExtraLinkerFlags {.strdefine.} = ""
 
 static:
-  if defined(windows):
+  if buildOS == "windows":
     func pathUnix2Win(path: string): string =
       gorge("cygpath -w " & path.strip).strip
 
