@@ -1,3 +1,12 @@
+> **This is a fork.** `fryorcraken/nim-leopard` points its `vendor/leopard`
+> submodule at [`fryorcraken/leopard`](https://github.com/fryorcraken/leopard)
+> instead of upstream `status-im/leopard`, to pick up a fix for an Android
+> x86/x86_64 NDK cross-compile failure (see that fork's README for detail),
+> for
+> [`logos-android-wrap-poc`](https://github.com/fryorcraken/logos-android-wrap-poc).
+> Everything else is unmodified upstream code. Upstream:
+> [`status-im/nim-leopard`](https://github.com/status-im/nim-leopard).
+
 # nim-leopard
 
 [![License: Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
