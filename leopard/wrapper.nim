@@ -89,13 +89,13 @@ const
   LeopardLib {.strdefine.} = buildDir & "/liblibleopard.a"
 
   LeopardCompilerFlags {.strdefine.} =
-    when defined(macosx):
+    when defined(macosx) or defined(windows):
       "-I" & LeopardDir
     else:
       "-I" & LeopardDir & " -fopenmp"
 
   LeopardLinkerFlags {.strdefine.} =
-    when defined(macosx):
+    when defined(macosx) or defined(windows):
       LeopardLib
     else:
       LeopardLib & " -fopenmp"
@@ -103,6 +103,11 @@ const
   LeopardExtraCompilerFlags {.strdefine.} = ""
 
   LeopardExtraLinkerFlags {.strdefine.} = ""
+
+  # Goes before LeopardCmakeFlags, so callers can still turn OpenMP back on.
+  leopardCmakeOpenMP =
+    when defined(windows): "-DENABLE_OPENMP=off"
+    else: ""
 
 static:
   if buildOS == "windows":
@@ -125,8 +130,8 @@ static:
     if (bashEx("ls", LeopardLib.pathWin2Unix)).exitCode != 0:
       discard bash("mkdir -p", buildDirUnix)
       let cmd =
-        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, LeopardCmakeFlags,
-          "&& make libleopard"]
+        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, leopardCmakeOpenMP,
+          LeopardCmakeFlags, "&& make libleopard"]
       echo "\nBuilding Leopard-RS: " & cmd.join(" ")
       let (output, exitCode) = bashEx cmd
       echo output
@@ -138,8 +143,8 @@ static:
     if gorgeEx("ls " & LeopardLib).exitCode != 0:
       discard gorge "mkdir -p " & buildDir
       let cmd =
-        "cd " & buildDir & " && cmake " & LeopardDir & " " & LeopardCmakeFlags &
-        " && make libleopard"
+        "cd " & buildDir & " && cmake " & LeopardDir & " " & leopardCmakeOpenMP &
+        " " & LeopardCmakeFlags & " && make libleopard"
       echo "\nBuilding Leopard-RS: " & cmd
       let (output, exitCode) = gorgeEx cmd
       echo output
