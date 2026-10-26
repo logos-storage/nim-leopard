@@ -104,6 +104,11 @@ const
 
   LeopardExtraLinkerFlags {.strdefine.} = ""
 
+  # CMake would otherwise take the first compiler on PATH, e.g. MSVC from vcvars.
+  leopardCmakeCompilers =
+    when defined(gcc): "-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
+    else: ""
+
 static:
   if buildOS == "windows":
     func pathUnix2Win(path: string): string =
@@ -125,8 +130,8 @@ static:
     if (bashEx("ls", LeopardLib.pathWin2Unix)).exitCode != 0:
       discard bash("mkdir -p", buildDirUnix)
       let cmd =
-        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, LeopardCmakeFlags,
-          "&& make libleopard"]
+        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, leopardCmakeCompilers,
+          LeopardCmakeFlags, "&& make libleopard"]
       echo "\nBuilding Leopard-RS: " & cmd.join(" ")
       let (output, exitCode) = bashEx cmd
       echo output
