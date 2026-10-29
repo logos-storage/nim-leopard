@@ -23,7 +23,7 @@ jobs:
             runner: windows-latest
           }
         # Earliest supported and latest nim
-        nim: [1.6.18, "stable"]
+        nim: [2.2.12, "stable"]
     name: ${{ matrix.platform.icon }} ${{ matrix.platform.label }} - Nim v${{ matrix.nim }}
     runs-on: ${{ matrix.platform.runner }}
     defaults:
