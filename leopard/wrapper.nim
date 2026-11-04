@@ -104,6 +104,11 @@ const
 
   LeopardExtraLinkerFlags {.strdefine.} = ""
 
+  # Only libleopard is built, and a nimble install has no vendor/leopard/tests
+  # for Leopard-RS' benchmark and experiment executables. LeopardCmakeFlags
+  # comes later, so it can turn them back on.
+  leopardCmakeTargets = "-DLEOPARD_BUILD_TESTS=OFF"
+
   # CMake would otherwise take the first compiler on PATH, e.g. MSVC from vcvars.
   leopardCmakeCompilers =
     when defined(gcc): "-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"
@@ -130,8 +135,8 @@ static:
     if (bashEx("ls", LeopardLib.pathWin2Unix)).exitCode != 0:
       discard bash("mkdir -p", buildDirUnix)
       let cmd =
-        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, leopardCmakeCompilers,
-          LeopardCmakeFlags, "&& make libleopard"]
+        @["cd", buildDirUnix, "&& cmake", leopardDirUnix, leopardCmakeTargets,
+          leopardCmakeCompilers, LeopardCmakeFlags, "&& make libleopard"]
       echo "\nBuilding Leopard-RS: " & cmd.join(" ")
       let (output, exitCode) = bashEx cmd
       echo output
@@ -143,8 +148,8 @@ static:
     if gorgeEx("ls " & LeopardLib).exitCode != 0:
       discard gorge "mkdir -p " & buildDir
       let cmd =
-        "cd " & buildDir & " && cmake " & LeopardDir & " " & LeopardCmakeFlags &
-        " && make libleopard"
+        "cd " & buildDir & " && cmake " & LeopardDir & " " & leopardCmakeTargets &
+        " " & LeopardCmakeFlags & " && make libleopard"
       echo "\nBuilding Leopard-RS: " & cmd
       let (output, exitCode) = gorgeEx cmd
       echo output
